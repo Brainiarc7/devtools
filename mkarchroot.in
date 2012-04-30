@@ -134,7 +134,6 @@ chroot_mount() {
 
 copy_hostconf () {
 	cp /etc/resolv.conf "${working_dir}/etc/resolv.conf"
-	echo "Server = ${host_mirror}" > ${working_dir}/etc/pacman.d/mirrorlist
 
 	if [[ -n $pac_conf && $NOCOPY = 'n' ]]; then
 		cp ${pac_conf} ${working_dir}/etc/pacman.conf

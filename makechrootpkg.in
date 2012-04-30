@@ -270,7 +270,9 @@ export LANG=C
 export HOME=/build
 
 cd /build
-sudo -u nobody makepkg $makepkg_args || touch BUILD_FAILED
+mkdir .distcc
+chown nobody .distcc
+sudo -u nobody DISTCC_IO_TIMEOUT=0 DISTCC_DIR='/build/.distcc' makepkg $makepkg_args || touch BUILD_FAILED
 
 [[ -f BUILD_FAILED ]] && exit 1
 
