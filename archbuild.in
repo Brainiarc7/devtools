@@ -1,0 +1,71 @@
+#!/bin/bash
+
+m4_include(lib/common.sh)
+
+base_packages=(base base-devel sudo)
+
+cmd="${0##*/}"
+if [[ "${cmd%%-*}" == 'multilib' ]]; then
+	repo="${cmd%-build}"
+	arch='x86_64'
+	base_packages+=(multilib-devel)
+else
+	tag="${cmd%-build}"
+	repo=${tag%-*}
+	arch=${tag##*-}
+fi
+chroots='/var/tmp/archbuild'
+clean_first=false
+
+usage() {
+	echo "usage $cmd"
+	echo '    -c         Recreate the chroot before building'
+	echo '    -r <dir>   Create chroots in this directory'
+	exit 1
+}
+
+while getopts 'cr:' arg; do
+	case "${arg}" in
+		c) clean_first=true ;;
+		r) chroots="$OPTARG" ;;
+		*) usage ;;
+	esac
+done
+
+if [[ "$EUID" != '0' ]]; then
+	die 'This script must be run as root.'
+fi
+
+if ${clean_first} || [[ ! -d "${chroots}/${repo}-${arch}" ]]; then
+	msg "Creating chroot for [${repo}] (${arch})..."
+
+	for copy in "${chroots}/${repo}-${arch}"/*; do
+		[[ -d $copy ]] || continue
+		msg2 "Deleting chroot copy '$(basename "${copy}")'..."
+
+		# Lock the copy
+		exec 9>"${copy}.lock"
+		flock 9
+
+		{ type -P btrfs && btrfs subvolume delete "${copy}"; } &>/dev/null
+		rm -rf "${copy}"
+	done
+	exec 9>&-
+
+	rm -rf "${chroots}/${repo}-${arch}"
+	mkdir -p "${chroots}/${repo}-${arch}"
+	setarch "${arch}" mkarchroot \
+		-C "@pkgdatadir@/pacman-${repo}.conf" \
+		-M "@pkgdatadir@/makepkg-${arch}.conf" \
+		"${chroots}/${repo}-${arch}/root" \
+		"${base_packages[@]}"
+else
+	setarch ${arch} mkarchroot \
+		-u \
+		-C "@pkgdatadir@/pacman-${repo}.conf" \
+		-M "@pkgdatadir@/makepkg-${arch}.conf" \
+		"${chroots}/${repo}-${arch}/root"
+fi
+
+msg "Building in chroot for [${repo}] (${arch})..."
+exec setarch "${arch}" makechrootpkg -c -n -r "${chroots}/${repo}-${arch}"
