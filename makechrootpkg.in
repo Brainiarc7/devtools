@@ -45,6 +45,7 @@ usage() {
 	echo 'Flags:'
 	echo '-h         This help'
 	echo '-c         Clean the chroot before building'
+	echo '-C <dir>   Set pacman cache to pass to mkarchroot'
 	echo '-u         Update the working copy of the chroot before building'
 	echo '           This is useful for rebuilds without dirtying the pristine'
 	echo '           chroot'
@@ -62,6 +63,7 @@ while getopts 'hcudr:I:l:n' arg; do
 	case "$arg" in
 		h) usage ;;
 		c) clean_first=true ;;
+		C) cache_dir="$OPTARG" ;;
 		u) update_first=true ;;
 		d) add_to_db=true ;;
 		r) passeddir="$OPTARG" ;;
@@ -110,6 +112,10 @@ if [[ ! -d $chrootdir/root ]]; then
 fi
 
 umask 0022
+
+if [ -n "$cache_dir" ]; then
+	cache_dir="-c $cache_dir"
+fi
 
 # Lock the chroot we want to use. We'll keep this lock until we exit.
 # Note this is the same FD number as in mkarchroot
@@ -288,7 +294,7 @@ exit 0
 EOF
 chmod +x "$copydir/chrootbuild"
 
-if mkarchroot -r "/chrootbuild" "$copydir"; then
+if mkarchroot $cach_dir -r "/chrootbuild" "$copydir"; then
 	for pkgfile in "$copydir"/pkgdest/*.pkg.tar.?z; do
 		if $add_to_db; then
 			mkdir -p "$copydir/repo"
