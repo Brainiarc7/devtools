@@ -121,7 +121,7 @@ chroot_mount() {
 
 	[[ -e $cache_dir ]] || mkdir -p "${cache_dir}"
 	[[ -e "${working_dir}/${cache_dir}" ]] || mkdir -p "${working_dir}/${cache_dir}"
-	mount -o bind "${cache_dir}" "${working_dir}/${cache_dir}"
+	mount -o bind "${cache_dir}" "${working_dir}/var/cache/pacman/pkg"
 
 	if [[ -n $host_mirror_path ]]; then
 		[[ -e "${working_dir}/${host_mirror_path}" ]] || mkdir -p "${working_dir}/${host_mirror_path}"
@@ -150,7 +150,7 @@ chroot_umount () {
 	umount "${working_dir}/dev/pts"
 	umount "${working_dir}/dev/shm"
 	umount "${working_dir}/dev"
-	umount "${working_dir}/${cache_dir}"
+	umount "${working_dir}/var/cache/pacman/pkg"
 	[[ -n $host_mirror_path ]] && umount "${working_dir}/${host_mirror_path}"
 }
 
