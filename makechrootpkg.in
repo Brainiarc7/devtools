@@ -59,7 +59,7 @@ usage() {
 	exit 1
 }
 
-while getopts 'hcudr:I:l:n' arg; do
+while getopts 'hcudC:r:I:l:n' arg; do
 	case "$arg" in
 		h) usage ;;
 		c) clean_first=true ;;
@@ -294,7 +294,7 @@ exit 0
 EOF
 chmod +x "$copydir/chrootbuild"
 
-if mkarchroot $cach_dir -r "/chrootbuild" "$copydir"; then
+if mkarchroot $cache_dir -r "/chrootbuild" "$copydir"; then
 	for pkgfile in "$copydir"/pkgdest/*.pkg.tar.?z; do
 		if $add_to_db; then
 			mkdir -p "$copydir/repo"
