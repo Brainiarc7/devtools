@@ -38,7 +38,7 @@ usage() {
 while getopts 'r:ufnhC:M:c:d' arg; do
 	case "${arg}" in
 		r) RUN="$OPTARG" ;;
-		u) RUN='/bin/sh -c "pacman -Syu --noconfirm && (pacman -Qqu >/dev/null && pacman -Su --noconfirm || exit 0)"' ;;
+		u) RUN='/bin/sh -c "pacman -Syuf --noconfirm && (pacman -Qqu >/dev/null && pacman -Su --noconfirm || exit 0)"' ;;
 		f) FORCE='y' ;;
 		C) pac_conf="$OPTARG" ;;
 		M) makepkg_conf="$OPTARG" ;;
